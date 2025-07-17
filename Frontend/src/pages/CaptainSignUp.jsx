@@ -1,5 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState,useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { CaptainDataContext } from '../context/CaptainContext'
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 const CaptainSignup = () => {
     const [email, setEmail] = useState('')
@@ -7,28 +10,42 @@ const CaptainSignup = () => {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [captainData,setCaptainData] = useState({});
-    
+
+    const navigate = useNavigate();
+    const {captain,setCaptain} = useContext(CaptainDataContext);
+
     const [vehicleColor, setVehicleColor] = useState('')
     const [vehiclePlate, setVehiclePlate] = useState('')
     const [vehicleCapacity, setVehicleCapacity] = useState('')
     const [vehicleType, setVehicleType] = useState('')
 
-    const submitHandler = (e) => {
+    const submitHandler = async(e) => {
         e.preventDefault();
-        setCaptainData({
+        const captainData = {
             fullname: {
-              firstname: firstName,
-              lastname: lastName
+                firstname: firstName,
+                lastname: lastName
             },
             email: email,
             password: password,
             vehicle: {
-              color: vehicleColor,
-              plate: vehiclePlate,
-              capacity: vehicleCapacity,
-              vehicleType: vehicleType
+                color: vehicleColor,
+                plate: vehiclePlate,
+                capacity: Number(vehicleCapacity),
+                vehicleType: vehicleType
             }
-        });
+        };
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/register`,captainData)
+            if(response.status === 201){
+                const data = response.data;
+                setCaptain(data);
+                localStorage.setItem('token',data.token);
+                navigate('/captain-home');
+            }
+        } catch (err) {
+            console.error(err.response.data);
+        }
         setEmail('')
         setFirstName('')
         setLastName('')
@@ -37,7 +54,6 @@ const CaptainSignup = () => {
         setVehiclePlate('')
         setVehicleCapacity('')
         setVehicleType('')
-
       }
     return (
         <div className='py-5 px-5 h-screen flex flex-col justify-between'>
@@ -141,7 +157,7 @@ const CaptainSignup = () => {
                             <option value="" disabled>Select Vehicle Type</option>
                             <option value="car">Car</option>
                             <option value="auto">Auto</option>
-                            <option value="moto">Moto</option>
+                            <option value="motorcycle">Motorcycle</option>
                         </select>
                     </div>
 
